@@ -63,6 +63,10 @@
     var numero = Number(button.dataset.numero || 0);
     var estudiante = State.getState().estudianteModal;
 
+    if (estudiante && estudiante.estadoRevision && estudiante.estadoRevision !== C.ESTADOS.pendiente) {
+      return Messages.info('Esta revisión ya fue guardada y está en modo solo lectura.');
+    }
+
     if (action === 'seleccionar-titulo') {
       if (!confirm('¿Confirmas seleccionar este título como definitivo?')) return;
       Editor.seleccionarTitulo(numero);
@@ -75,6 +79,8 @@
   }
 
   function manejarTextoEditado(event) {
+    var estudiante = State.getState().estudianteModal;
+    if (estudiante && estudiante.estadoRevision && estudiante.estadoRevision !== C.ESTADOS.pendiente) return;
     if (!event.target || event.target.dataset.action !== 'texto-editado') return;
     Editor.actualizarTexto(event.target.dataset.numero, event.target.value);
   }
@@ -86,6 +92,7 @@
     var hayCorrecciones = Editor.tieneCorrecciones();
 
     if (!estado.estudianteModal || !estado.coordinadorActivo || !draft) return Messages.error('No hay una revisión activa.');
+    if (estado.estudianteModal.estadoRevision && estado.estudianteModal.estadoRevision !== C.ESTADOS.pendiente) return Messages.error('Esta revisión ya fue guardada y no se puede cambiar.');
     if (accion === C.ACCIONES.aprobar && hayCorrecciones) return Messages.error('Hay títulos editados. Usa Aprobar con correcciones.');
     if (accion === C.ACCIONES.aprobarCorrecciones && !hayCorrecciones) return Messages.error('Primero edita al menos un título.');
     if ((accion === C.ACCIONES.devolver || accion === C.ACCIONES.aprobarCorrecciones) && !observacion) return Messages.error('La observación global es obligatoria.');
