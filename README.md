@@ -51,3 +51,4 @@ assets/
 - Bloque 1: limpieza completada.
 - Bloque 2: estructura visual base.
 - Bloque 3: configuración, estado, utilidades y servicios de datos.
+- Bloque 4: repositorio, UI y controladores.
