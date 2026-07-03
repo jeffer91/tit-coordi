@@ -1,0 +1,98 @@
+/*
+  Archivo: responsive.css
+  Ruta: /css/responsive.css
+  Funciones principales:
+  - Adaptar la app a pantallas pequeñas.
+  - Hacer que tarjetas, controles, menú y modal funcionen en celular.
+  - Evitar desbordes visuales en la tabla y botones.
+*/
+
+@media (max-width: 980px) {
+  .app-header__content,
+  .section-heading--row {
+    flex-direction: column;
+  }
+
+  .source-pill {
+    align-self: flex-start;
+  }
+
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .control-actions {
+    justify-content: stretch;
+  }
+
+  .control-actions .btn {
+    flex: 1 1 180px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .app-header {
+    padding: 28px 14px 54px;
+  }
+
+  .app-shell {
+    margin-top: -30px;
+    padding: 0 14px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .tab,
+  .btn {
+    width: 100%;
+  }
+
+  .modal {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .modal__panel {
+    max-height: 96vh;
+    border-radius: 18px;
+  }
+
+  .modal__header,
+  .modal__footer,
+  .modal__body {
+    padding: 16px;
+  }
+
+  .modal__header {
+    flex-direction: column-reverse;
+  }
+
+  .modal__close {
+    align-self: flex-end;
+  }
+
+  .modal__footer {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .proposal-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
