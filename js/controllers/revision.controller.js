@@ -4,7 +4,7 @@
   Funciones principales:
   - Abrir/cerrar modal Ver más.
   - Seleccionar, editar y restaurar títulos.
-  - Guardar aprobación, devolución o corrección.
+  - Guardar aprobación, devolución o corrección respetando el flujo definido.
 */
 (function (window) {
   'use strict';
@@ -63,7 +63,11 @@
     var numero = Number(button.dataset.numero || 0);
     var estudiante = State.getState().estudianteModal;
 
-    if (action === 'seleccionar-titulo') Editor.seleccionarTitulo(numero);
+    if (action === 'seleccionar-titulo') {
+      if (!confirm('¿Confirmas seleccionar este título como definitivo?')) return;
+      Editor.seleccionarTitulo(numero);
+    }
+
     if (action === 'editar-titulo') Editor.activarEdicion(numero);
     if (action === 'volver-original') Editor.volverOriginal(numero);
 
@@ -78,10 +82,14 @@
   function guardar(accion) {
     var estado = State.getState();
     var draft = Editor.cerrarEdicion();
+    var observacion = dom.getValue('#observacionRevision');
+    var hayCorrecciones = Editor.tieneCorrecciones();
 
     if (!estado.estudianteModal || !estado.coordinadorActivo || !draft) return Messages.error('No hay una revisión activa.');
-    if (accion === C.ACCIONES.aprobarCorrecciones && !Editor.tieneCorrecciones()) return Messages.error('Primero edita al menos un título.');
-    if (!confirm('¿Confirmas guardar esta revisión?')) return;
+    if (accion === C.ACCIONES.aprobar && hayCorrecciones) return Messages.error('Hay títulos editados. Usa Aprobar con correcciones.');
+    if (accion === C.ACCIONES.aprobarCorrecciones && !hayCorrecciones) return Messages.error('Primero edita al menos un título.');
+    if ((accion === C.ACCIONES.devolver || accion === C.ACCIONES.aprobarCorrecciones) && !observacion) return Messages.error('La observación global es obligatoria.');
+    if (!confirm(mensajeConfirmacion(accion))) return;
 
     Modal.setLoading(true);
     Messages.info('Guardando revisión...');
@@ -92,7 +100,7 @@
       coordinador: estado.coordinadorActivo,
       tituloNumero: draft.tituloSeleccionado,
       titulos: draft.titulos,
-      observacion: dom.getValue('#observacionRevision')
+      observacion: observacion
     }).then(function (resultado) {
       State.actualizarEstudiante(resultado.revision.cedula, {
         estadoRevision: resultado.revision.estadoRevision,
@@ -112,6 +120,12 @@
     }).finally(function () {
       Modal.setLoading(false);
     });
+  }
+
+  function mensajeConfirmacion(accion) {
+    if (accion === C.ACCIONES.devolver) return '¿Confirmas devolver los tres títulos?';
+    if (accion === C.ACCIONES.aprobarCorrecciones) return '¿Confirmas aprobar con correcciones?';
+    return '¿Confirmas aprobar el título seleccionado?';
   }
 
   function cerrar() {
