@@ -2,9 +2,9 @@
   Archivo: revision.controller.js
   Ruta: /js/controllers/revision.controller.js
   Funciones principales:
-  - Abrir y cerrar el modal Ver más.
-  - Seleccionar título definitivo, editar con lapicito y volver al original.
-  - Guardar aprobación, devolución o aprobación con correcciones.
+  - Abrir/cerrar modal Ver más.
+  - Seleccionar, editar y restaurar títulos.
+  - Guardar aprobación, devolución o corrección.
 */
 (function (window) {
   'use strict';
@@ -22,25 +22,19 @@
   var dom = window.TitCoordi.Utils.dom;
 
   function iniciar() {
-    var tabla = dom.qs('#tablaEstudiantesBody');
-    var lista = dom.qs('#modalTitulosLista');
-
-    if (tabla) tabla.addEventListener('click', manejarTabla);
-    if (lista) {
-      lista.addEventListener('click', manejarTitulos);
-      lista.addEventListener('input', manejarTextoEditado);
-    }
-
-    conectarBoton('#btnCerrarModal', cerrar);
-    conectarBoton('#btnCancelarRevision', cerrar);
-    conectarBoton('#btnAprobarTitulo', function () { guardar(C.ACCIONES.aprobar); });
-    conectarBoton('#btnAprobarCorrecciones', function () { guardar(C.ACCIONES.aprobarCorrecciones); });
-    conectarBoton('#btnDevolverTitulos', function () { guardar(C.ACCIONES.devolver); });
+    escuchar('#tablaEstudiantesBody', 'click', manejarTabla);
+    escuchar('#modalTitulosLista', 'click', manejarTitulos);
+    escuchar('#modalTitulosLista', 'input', manejarTextoEditado);
+    escuchar('#btnCerrarModal', 'click', cerrar);
+    escuchar('#btnCancelarRevision', 'click', cerrar);
+    escuchar('#btnAprobarTitulo', 'click', function () { guardar(C.ACCIONES.aprobar); });
+    escuchar('#btnAprobarCorrecciones', 'click', function () { guardar(C.ACCIONES.aprobarCorrecciones); });
+    escuchar('#btnDevolverTitulos', 'click', function () { guardar(C.ACCIONES.devolver); });
   }
 
-  function conectarBoton(selector, handler) {
-    var button = dom.qs(selector);
-    if (button) button.addEventListener('click', handler);
+  function escuchar(selector, evento, handler) {
+    var el = dom.qs(selector);
+    if (el) el.addEventListener(evento, handler);
   }
 
   function manejarTabla(event) {
@@ -55,10 +49,7 @@
       return String(item.id) === String(id) || String(item.cedula) === String(id);
     })[0];
 
-    if (!estudiante) {
-      Messages.error('No se encontró el estudiante seleccionado.');
-      return;
-    }
+    if (!estudiante) return Messages.error('No se encontró el estudiante seleccionado.');
 
     State.setEstudianteModal(estudiante);
     Modal.abrir(estudiante, Editor.crearDraft(estudiante));
@@ -70,38 +61,27 @@
 
     var action = button.dataset.action;
     var numero = Number(button.dataset.numero || 0);
-    var estado = State.getState();
+    var estudiante = State.getState().estudianteModal;
 
     if (action === 'seleccionar-titulo') Editor.seleccionarTitulo(numero);
     if (action === 'editar-titulo') Editor.activarEdicion(numero);
     if (action === 'volver-original') Editor.volverOriginal(numero);
 
-    Modal.render(estado.estudianteModal, Editor.obtenerDraft());
+    Modal.render(estudiante, Editor.obtenerDraft());
   }
 
   function manejarTextoEditado(event) {
     if (!event.target || event.target.dataset.action !== 'texto-editado') return;
-    var estado = State.getState();
     Editor.actualizarTexto(event.target.dataset.numero, event.target.value);
-    Modal.render(estado.estudianteModal, Editor.obtenerDraft());
   }
 
   function guardar(accion) {
     var estado = State.getState();
     var draft = Editor.cerrarEdicion();
-    var observacion = dom.getValue('#observacionRevision');
 
-    if (!estado.estudianteModal || !estado.coordinadorActivo || !draft) {
-      Messages.error('No hay una revisión activa.');
-      return;
-    }
-
-    if (accion === C.ACCIONES.aprobarCorrecciones && !Editor.tieneCorrecciones()) {
-      Messages.error('Para aprobar con correcciones primero edita al menos un título.');
-      return;
-    }
-
-    if (!confirm(mensajeConfirmacion(accion))) return;
+    if (!estado.estudianteModal || !estado.coordinadorActivo || !draft) return Messages.error('No hay una revisión activa.');
+    if (accion === C.ACCIONES.aprobarCorrecciones && !Editor.tieneCorrecciones()) return Messages.error('Primero edita al menos un título.');
+    if (!confirm('¿Confirmas guardar esta revisión?')) return;
 
     Modal.setLoading(true);
     Messages.info('Guardando revisión...');
@@ -112,41 +92,26 @@
       coordinador: estado.coordinadorActivo,
       tituloNumero: draft.tituloSeleccionado,
       titulos: draft.titulos,
-      observacion: observacion
+      observacion: dom.getValue('#observacionRevision')
     }).then(function (resultado) {
-      aplicarRevisionLocal(resultado.revision);
+      State.actualizarEstudiante(resultado.revision.cedula, {
+        estadoRevision: resultado.revision.estadoRevision,
+        tituloAprobadoNumero: resultado.revision.tituloDefinitivoNumero,
+        tituloAprobadoTexto: resultado.revision.tituloDefinitivoTexto,
+        observacionRevision: resultado.revision.observacion,
+        titulos: resultado.revision.titulosRevisados
+      });
+
       cerrar();
       Coordinador.refrescarPantalla();
 
-      if (resultado.sync && resultado.sync.respaldoCompleto === false) {
-        Messages.advertencia('Guardado principal correcto, respaldo pendiente.');
-        return;
-      }
-
-      Messages.exito('Revisión guardada correctamente.');
+      if (resultado.sync && resultado.sync.respaldoCompleto === false) Messages.advertencia('Guardado principal correcto, respaldo pendiente.');
+      else Messages.exito('Revisión guardada correctamente.');
     }).catch(function (error) {
       Messages.error(Messages.textoError(error, 'No se pudo guardar la revisión.'));
     }).finally(function () {
       Modal.setLoading(false);
     });
-  }
-
-  function aplicarRevisionLocal(revision) {
-    var cambios = {
-      estadoRevision: revision.estadoRevision,
-      tituloAprobadoNumero: revision.tituloDefinitivoNumero,
-      tituloAprobadoTexto: revision.tituloDefinitivoTexto,
-      observacionRevision: revision.observacion,
-      titulos: revision.titulosRevisados
-    };
-
-    State.actualizarEstudiante(revision.cedula, cambios);
-  }
-
-  function mensajeConfirmacion(accion) {
-    if (accion === C.ACCIONES.devolver) return '¿Confirmas devolver los tres títulos?';
-    if (accion === C.ACCIONES.aprobarCorrecciones) return '¿Confirmas aprobar con correcciones?';
-    return '¿Confirmas aprobar el título seleccionado?';
   }
 
   function cerrar() {
@@ -155,10 +120,5 @@
     State.setEstudianteModal(null);
   }
 
-  window.TitCoordi.Controllers.Revision = Object.freeze({
-    iniciar: iniciar,
-    abrirPorId: abrirPorId,
-    cerrar: cerrar,
-    guardar: guardar
-  });
+  window.TitCoordi.Controllers.Revision = Object.freeze({ iniciar: iniciar, abrirPorId: abrirPorId, cerrar: cerrar, guardar: guardar });
 })(window);
