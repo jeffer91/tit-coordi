@@ -3,8 +3,8 @@
   Ruta: /js/ui/modal.ui.js
   Funciones principales:
   - Renderizar el modal Ver más con los tres títulos del estudiante.
-  - Mostrar controles para seleccionar, editar con lapicito y volver al original.
-  - Mantener el modal visualmente sincronizado con el borrador de revisión.
+  - Mostrar controles de revisión solo cuando el registro está pendiente.
+  - Mostrar aprobados/devueltos en modo solo lectura.
 */
 (function (window) {
   'use strict';
@@ -13,6 +13,7 @@
   window.TitCoordi.UI = window.TitCoordi.UI || {};
 
   var dom = window.TitCoordi.Utils.dom;
+  var C = window.TitCoordi.Constants;
 
   function abrir(estudiante, draft) {
     render(estudiante, draft);
@@ -26,14 +27,17 @@
     var modal = dom.qs('#modalRevision');
     if (modal) modal.setAttribute('aria-hidden', 'true');
     dom.setValue('#observacionRevision', '');
+    setReadOnly(false);
   }
 
   function render(estudiante, draft) {
     var lista = dom.qs('#modalTitulosLista');
     var titulos = draft && draft.titulos ? draft.titulos : [];
+    var soloLectura = esSoloLectura(estudiante);
 
     dom.setText('#modalTitulo', estudiante && estudiante.nombres ? estudiante.nombres : 'Revisión de títulos');
-    dom.setText('#modalCarreraTexto', 'Carrera: ' + ((estudiante && estudiante.carrera) || '—'));
+    dom.setText('#modalCarreraTexto', textoCarreraEstado(estudiante));
+    setReadOnly(soloLectura);
 
     if (!lista) return;
     lista.innerHTML = '';
@@ -47,11 +51,11 @@
     }
 
     titulos.forEach(function (titulo) {
-      lista.appendChild(crearTituloCard(titulo, draft));
+      lista.appendChild(crearTituloCard(titulo, draft, soloLectura));
     });
   }
 
-  function crearTituloCard(titulo, draft) {
+  function crearTituloCard(titulo, draft, soloLectura) {
     var card = document.createElement('article');
     card.className = 'proposal-card';
     card.dataset.numero = titulo.numero;
@@ -71,29 +75,20 @@
 
     header.appendChild(strong);
     header.appendChild(badge);
+    card.appendChild(header);
 
-    var text = document.createElement('p');
-    text.className = 'proposal-card__text';
-    text.textContent = titulo.tituloOficial || 'Sin título registrado';
-
-    var actions = document.createElement('div');
-    actions.className = 'proposal-card__actions';
-
-    actions.appendChild(boton('Seleccionar este título', 'seleccionar-titulo', titulo.numero, 'btn--primary'));
-    actions.appendChild(boton('✏️ Editar', 'editar-titulo', titulo.numero, 'btn--secondary'));
-    actions.appendChild(boton('Volver al original', 'volver-original', titulo.numero, 'btn--ghost'));
-
-    if (titulo.editando) {
+    if (titulo.editando && !soloLectura) {
       var editor = document.createElement('textarea');
       editor.className = 'proposal-card__editor';
       editor.rows = 3;
       editor.value = titulo.tituloOficial || '';
       editor.dataset.action = 'texto-editado';
       editor.dataset.numero = titulo.numero;
-      card.appendChild(header);
       card.appendChild(editor);
     } else {
-      card.appendChild(header);
+      var text = document.createElement('p');
+      text.className = 'proposal-card__text';
+      text.textContent = titulo.tituloOficial || 'Sin título registrado';
       card.appendChild(text);
     }
 
@@ -104,7 +99,15 @@
       card.appendChild(note);
     }
 
-    card.appendChild(actions);
+    if (!soloLectura) {
+      var actions = document.createElement('div');
+      actions.className = 'proposal-card__actions';
+      actions.appendChild(boton('Seleccionar este título', 'seleccionar-titulo', titulo.numero, 'btn--primary'));
+      actions.appendChild(boton('Editar', 'editar-titulo', titulo.numero, 'btn--secondary'));
+      actions.appendChild(boton('Volver al original', 'volver-original', titulo.numero, 'btn--ghost'));
+      card.appendChild(actions);
+    }
+
     return card;
   }
 
@@ -124,10 +127,29 @@
     });
   }
 
-  window.TitCoordi.UI.Modal = Object.freeze({
-    abrir: abrir,
-    cerrar: cerrar,
-    render: render,
-    setLoading: setLoading
-  });
+  function setReadOnly(readOnly) {
+    ['#btnDevolverTitulos', '#btnAprobarCorrecciones', '#btnAprobarTitulo'].forEach(function (selector) {
+      var btn = dom.qs(selector);
+      if (btn) btn.classList.toggle('is-hidden', Boolean(readOnly));
+    });
+
+    var obs = dom.qs('#observacionRevision');
+    if (obs) {
+      obs.disabled = Boolean(readOnly);
+      if (readOnly) obs.placeholder = 'Revisión ya guardada. Solo lectura.';
+      else obs.placeholder = 'Obligatoria si devuelves o apruebas con correcciones.';
+    }
+  }
+
+  function esSoloLectura(estudiante) {
+    return Boolean(estudiante && estudiante.estadoRevision && estudiante.estadoRevision !== C.ESTADOS.pendiente);
+  }
+
+  function textoCarreraEstado(estudiante) {
+    var carrera = 'Carrera: ' + ((estudiante && estudiante.carrera) || '—');
+    if (esSoloLectura(estudiante)) return carrera + ' | Estado: ' + (estudiante.estadoRevision || '—');
+    return carrera;
+  }
+
+  window.TitCoordi.UI.Modal = Object.freeze({ abrir: abrir, cerrar: cerrar, render: render, setLoading: setLoading, setReadOnly: setReadOnly });
 })(window);
