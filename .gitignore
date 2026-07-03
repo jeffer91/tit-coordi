@@ -1,0 +1,13 @@
+# Archivo: .gitignore
+# Ruta: /.gitignore
+# Función principal:
+# - Evitar que se suban archivos temporales, dependencias locales o configuraciones privadas.
+
+node_modules/
+.env
+.env.local
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
