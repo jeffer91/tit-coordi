@@ -4,7 +4,7 @@
   Funciones principales:
   - Consultar datos respetando la prioridad Google Sheets, Supabase y Firebase.
   - Intentar la siguiente fuente si la anterior falla o responde sin datos.
-  - Entregar una respuesta normalizada sin exponer la complejidad a la pantalla.
+  - Permitir lista vacía de estudiantes cuando ninguna fuente tiene registros.
 */
 (function (window) {
   'use strict';
@@ -16,7 +16,7 @@
   var FUENTES = constants.FUENTES || {};
   var services = window.TitCoordi.Services;
 
-  function intentarFuentes(nombreMetodo, args) {
+  function intentarFuentes(nombreMetodo, args, permitirVacioFinal) {
     var errores = [];
     var orden = [
       { nombre: FUENTES.googleSheets || 'GOOGLE_SHEETS', service: services.GoogleSheets },
@@ -24,41 +24,39 @@
       { nombre: FUENTES.firebase || 'FIREBASE', service: services.Firebase }
     ];
 
-    return probarFuente(orden, 0, nombreMetodo, args || [], errores);
+    return probarFuente(orden, 0, nombreMetodo, args || [], errores, Boolean(permitirVacioFinal));
   }
 
-  function probarFuente(orden, index, nombreMetodo, args, errores) {
+  function probarFuente(orden, index, nombreMetodo, args, errores, permitirVacioFinal) {
     var fuente = orden[index];
 
     if (!fuente) {
+      if (permitirVacioFinal) {
+        return Promise.resolve({ ok: true, fuente: FUENTES.ninguna || 'NINGUNA', data: [], advertencias: errores.slice() });
+      }
       return Promise.reject(new Error('No se pudo obtener información desde ninguna fuente. ' + errores.join(' | ')));
     }
 
     if (!fuente.service || typeof fuente.service[nombreMetodo] !== 'function') {
       errores.push(fuente.nombre + ': servicio no disponible.');
-      return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+      return probarFuente(orden, index + 1, nombreMetodo, args, errores, permitirVacioFinal);
     }
 
     if (typeof fuente.service.configurado === 'function' && !fuente.service.configurado()) {
       errores.push(fuente.nombre + ': no configurado.');
-      return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+      return probarFuente(orden, index + 1, nombreMetodo, args, errores, permitirVacioFinal);
     }
 
     return fuente.service[nombreMetodo].apply(null, args).then(function (data) {
       if (estaVacio(data)) {
         errores.push(fuente.nombre + ': sin datos.');
-        return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+        return probarFuente(orden, index + 1, nombreMetodo, args, errores, permitirVacioFinal);
       }
 
-      return {
-        ok: true,
-        fuente: fuente.nombre,
-        data: data,
-        advertencias: errores.slice()
-      };
+      return { ok: true, fuente: fuente.nombre, data: data, advertencias: errores.slice() };
     }).catch(function (error) {
       errores.push(fuente.nombre + ': ' + obtenerMensaje(error));
-      return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+      return probarFuente(orden, index + 1, nombreMetodo, args, errores, permitirVacioFinal);
     });
   }
 
@@ -73,11 +71,11 @@
   }
 
   function listarCoordinadoresActivos() {
-    return intentarFuentes('listarCoordinadoresActivos', []);
+    return intentarFuentes('listarCoordinadoresActivos', [], false);
   }
 
   function listarEstudiantesCoordinador(coordinador) {
-    return intentarFuentes('listarEstudiantesCoordinador', [coordinador]);
+    return intentarFuentes('listarEstudiantesCoordinador', [coordinador], true);
   }
 
   function obtenerMensaje(error) {
