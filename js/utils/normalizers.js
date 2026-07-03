@@ -4,7 +4,7 @@
   Funciones principales:
   - Normalizar datos que lleguen desde Google Sheets, Supabase o Firebase.
   - Leer columnas aunque cambien mayúsculas, espacios o tildes.
-  - Mantener estados, cédulas, carreras y títulos en formato consistente.
+  - Mantener estados, cédulas, carreras, títulos y coordinadores activos en formato consistente.
 */
 (function (window) {
   'use strict';
@@ -73,17 +73,29 @@
     return raw;
   }
 
+  function normalizarActivo(value, estado) {
+    var estadoTexto = normalizarComparacion(estado);
+    var activoTexto = normalizarComparacion(value);
+
+    if (estadoTexto === 'INACTIVO' || estadoTexto === 'DESACTIVADO') return false;
+    if (value === false) return false;
+    if (activoTexto === 'NO' || activoTexto === 'FALSE' || activoTexto === 'FALSO' || activoTexto === '0' || activoTexto === 'INACTIVO') return false;
+    return true;
+  }
+
   function normalizarCoordinador(data) {
     var source = data || {};
     var nombre = limpiarTexto(pick(source, ['nombre', 'nombres', 'coordinador', 'nombreCoordinador', 'Nombre Coordinador']));
     var id = limpiarTexto(pick(source, ['id', 'coordinadorId', 'codigo', 'email', 'correo'], nombre));
     var carrerasRaw = pick(source, ['carreras', 'carrerasAsignadas', 'carrera', 'Carreras', 'Carrera'], '');
+    var activoRaw = pick(source, ['activo', 'habilitado', 'estadoActivo'], '');
+    var estadoRaw = pick(source, ['estado'], '');
 
     return {
       id: id || nombre,
       nombre: nombre || id,
       email: limpiarTexto(pick(source, ['email', 'correo'], '')),
-      activo: source.activo === false || normalizarComparacion(pick(source, ['estado'], '')) === 'INACTIVO' ? false : true,
+      activo: normalizarActivo(activoRaw, estadoRaw),
       carreras: normalizarLista(carrerasRaw),
       raw: source
     };
