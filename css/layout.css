@@ -1,0 +1,115 @@
+/*
+  Archivo: layout.css
+  Ruta: /css/layout.css
+  Funciones principales:
+  - Definir la estructura general de la pantalla.
+  - Organizar header, contenedor principal, tarjetas y secciones.
+  - Separar layout de componentes específicos.
+*/
+
+.app-header {
+  padding: 34px 18px 64px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0b2f7d, #1455d9);
+}
+
+.app-header__content {
+  width: min(var(--max-width), 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.app-header h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(1.9rem, 4vw, 3.2rem);
+  line-height: 1.08;
+}
+
+.app-header p {
+  margin: 0;
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.app-shell {
+  width: min(var(--max-width), 100%);
+  margin: -36px auto 56px;
+  padding: 0 18px;
+}
+
+.card {
+  padding: 24px;
+  margin-bottom: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+}
+
+.control-card {
+  position: relative;
+  z-index: 2;
+}
+
+.review-card {
+  overflow: hidden;
+}
+
+.section-heading {
+  margin-bottom: 18px;
+}
+
+.section-heading h2 {
+  margin-bottom: 7px;
+}
+
+.section-heading p:last-child {
+  margin-bottom: 0;
+}
+
+.section-heading--row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.section-kicker {
+  margin: 0 0 6px;
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.control-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
