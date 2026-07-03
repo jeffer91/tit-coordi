@@ -3,8 +3,8 @@
   Ruta: /js/services/data-source.service.js
   Funciones principales:
   - Consultar datos respetando la prioridad Google Sheets, Supabase y Firebase.
-  - Entregar a la app una respuesta normalizada sin importar la fuente usada.
-  - Ocultar a los controladores la complejidad de múltiples bases de datos.
+  - Intentar la siguiente fuente si la anterior falla o responde sin datos.
+  - Entregar una respuesta normalizada sin exponer la complejidad a la pantalla.
 */
 (function (window) {
   'use strict';
@@ -24,37 +24,52 @@
       { nombre: FUENTES.firebase || 'FIREBASE', service: services.Firebase }
     ];
 
-    var cadena = Promise.reject(new Error('INICIO_CADENA'));
+    return probarFuente(orden, 0, nombreMetodo, args || [], errores);
+  }
 
-    orden.forEach(function (fuente) {
-      cadena = cadena.catch(function () {
-        if (!fuente.service || typeof fuente.service[nombreMetodo] !== 'function') {
-          errores.push(fuente.nombre + ': servicio no disponible.');
-          return Promise.reject(new Error('Servicio no disponible'));
-        }
+  function probarFuente(orden, index, nombreMetodo, args, errores) {
+    var fuente = orden[index];
 
-        if (typeof fuente.service.configurado === 'function' && !fuente.service.configurado()) {
-          errores.push(fuente.nombre + ': no configurado.');
-          return Promise.reject(new Error('No configurado'));
-        }
-
-        return fuente.service[nombreMetodo].apply(null, args || []).then(function (data) {
-          return {
-            ok: true,
-            fuente: fuente.nombre,
-            data: data,
-            advertencias: errores.slice()
-          };
-        }).catch(function (error) {
-          errores.push(fuente.nombre + ': ' + obtenerMensaje(error));
-          return Promise.reject(error);
-        });
-      });
-    });
-
-    return cadena.catch(function () {
+    if (!fuente) {
       return Promise.reject(new Error('No se pudo obtener información desde ninguna fuente. ' + errores.join(' | ')));
+    }
+
+    if (!fuente.service || typeof fuente.service[nombreMetodo] !== 'function') {
+      errores.push(fuente.nombre + ': servicio no disponible.');
+      return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+    }
+
+    if (typeof fuente.service.configurado === 'function' && !fuente.service.configurado()) {
+      errores.push(fuente.nombre + ': no configurado.');
+      return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+    }
+
+    return fuente.service[nombreMetodo].apply(null, args).then(function (data) {
+      if (estaVacio(data)) {
+        errores.push(fuente.nombre + ': sin datos.');
+        return probarFuente(orden, index + 1, nombreMetodo, args, errores);
+      }
+
+      return {
+        ok: true,
+        fuente: fuente.nombre,
+        data: data,
+        advertencias: errores.slice()
+      };
+    }).catch(function (error) {
+      errores.push(fuente.nombre + ': ' + obtenerMensaje(error));
+      return probarFuente(orden, index + 1, nombreMetodo, args, errores);
     });
+  }
+
+  function estaVacio(data) {
+    if (Array.isArray(data)) return data.length === 0;
+    if (!data) return true;
+    if (Array.isArray(data.data)) return data.data.length === 0;
+    if (Array.isArray(data.rows)) return data.rows.length === 0;
+    if (Array.isArray(data.estudiantes)) return data.estudiantes.length === 0;
+    if (Array.isArray(data.coordinadores)) return data.coordinadores.length === 0;
+    return false;
   }
 
   function listarCoordinadoresActivos() {
