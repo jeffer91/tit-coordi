@@ -3,7 +3,7 @@
   Ruta: /js/utils/normalizers.js
   Funciones principales:
   - Normalizar datos que lleguen desde Google Sheets, Supabase o Firebase.
-  - Convertir diferentes nombres de columnas/campos a una estructura común.
+  - Leer columnas aunque cambien mayúsculas, espacios o tildes.
   - Mantener estados, cédulas, carreras y títulos en formato consistente.
 */
 (function (window) {
@@ -30,46 +30,60 @@
   }
 
   function normalizarComparacion(value) {
-    return limpiarTexto(value)
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase();
+    return limpiarTexto(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  }
+
+  function claveComparable(value) {
+    return normalizarComparacion(value).replace(/[^A-Z0-9]+/g, '');
   }
 
   function pick(source, keys, fallback) {
     var data = source || {};
-    for (var i = 0; i < keys.length; i += 1) {
-      if (data[keys[i]] !== undefined && data[keys[i]] !== null && String(data[keys[i]]).trim() !== '') {
-        return data[keys[i]];
-      }
+    var i;
+    var key;
+
+    for (i = 0; i < keys.length; i += 1) {
+      key = keys[i];
+      if (tieneValor(data[key])) return data[key];
     }
+
+    var mapa = {};
+    Object.keys(data).forEach(function (realKey) {
+      mapa[claveComparable(realKey)] = realKey;
+    });
+
+    for (i = 0; i < keys.length; i += 1) {
+      key = mapa[claveComparable(keys[i])];
+      if (key && tieneValor(data[key])) return data[key];
+    }
+
     return fallback == null ? '' : fallback;
+  }
+
+  function tieneValor(value) {
+    return value !== undefined && value !== null && String(value).trim() !== '';
   }
 
   function normalizarEstado(value) {
     var raw = normalizarComparacion(value).replace(/\s+/g, '_');
-
     if (!raw || raw === 'ENVIADO' || raw === 'PENDIENTE_REVISION') return ESTADOS.pendiente || 'PENDIENTE';
     if (raw === 'APROBADO') return ESTADOS.aprobado || 'APROBADO';
-    if (raw === 'APROBADO_CON_OBSERVACION' || raw === 'APROBADO_CON_CORRECCION' || raw === 'APROBADO_CON_CORRECCIONES') {
-      return ESTADOS.aprobadoCorrecciones || 'APROBADO_CON_CORRECCIONES';
-    }
+    if (raw === 'APROBADO_CON_OBSERVACION' || raw === 'APROBADO_CON_CORRECCION' || raw === 'APROBADO_CON_CORRECCIONES') return ESTADOS.aprobadoCorrecciones || 'APROBADO_CON_CORRECCIONES';
     if (raw === 'DEVUELTO' || raw === 'RECHAZADO') return ESTADOS.devuelto || 'DEVUELTO';
-
     return raw;
   }
 
   function normalizarCoordinador(data) {
     var source = data || {};
-    var nombre = limpiarTexto(pick(source, ['nombre', 'nombres', 'coordinador', 'nombreCoordinador', 'NombreCoordinador']));
+    var nombre = limpiarTexto(pick(source, ['nombre', 'nombres', 'coordinador', 'nombreCoordinador', 'Nombre Coordinador']));
     var id = limpiarTexto(pick(source, ['id', 'coordinadorId', 'codigo', 'email', 'correo'], nombre));
     var carrerasRaw = pick(source, ['carreras', 'carrerasAsignadas', 'carrera', 'Carreras', 'Carrera'], '');
 
     return {
       id: id || nombre,
       nombre: nombre || id,
-      email: limpiarTexto(pick(source, ['email', 'correo', 'Correo'], '')),
-      activo: source.activo === false || normalizarComparacion(source.estado) === 'INACTIVO' ? false : true,
+      email: limpiarTexto(pick(source, ['email', 'correo'], '')),
+      activo: source.activo === false || normalizarComparacion(pick(source, ['estado'], '')) === 'INACTIVO' ? false : true,
       carreras: normalizarLista(carrerasRaw),
       raw: source
     };
@@ -77,10 +91,10 @@
 
   function normalizarEstudiante(data) {
     var source = data || {};
-    var cedula = normalizarCedula(pick(source, ['cedula', 'cédula', 'Cedula', 'Cédula', 'numeroIdentificacion', 'identificacion', 'documento']));
-    var nombres = limpiarTexto(pick(source, ['nombres', 'nombre', 'estudiante', 'nombreEstudiante', 'NombreEstudiante', 'NombreCompleto']));
-    var carrera = limpiarTexto(pick(source, ['carrera', 'nombreCarrera', 'NombreCarrera', 'Carrera']));
-    var estado = normalizarEstado(pick(source, ['estadoRevision', 'estado', 'Estado', 'revisionEstado'], 'PENDIENTE'));
+    var cedula = normalizarCedula(pick(source, ['cedula', 'cédula', 'numeroIdentificacion', 'identificacion', 'documento']));
+    var nombres = limpiarTexto(pick(source, ['nombres', 'nombre', 'estudiante', 'nombreEstudiante', 'Nombre Estudiante', 'NombreCompleto']));
+    var carrera = limpiarTexto(pick(source, ['carrera', 'nombreCarrera', 'Nombre Carrera']));
+    var estado = normalizarEstado(pick(source, ['estadoRevision', 'estado', 'revisionEstado'], 'PENDIENTE'));
     var titulos = normalizarTitulos(source);
 
     return {
@@ -89,11 +103,11 @@
       nombres: nombres,
       carrera: carrera,
       coordinadorId: limpiarTexto(pick(source, ['coordinadorId', 'idCoordinador'], '')),
-      coordinadorNombre: limpiarTexto(pick(source, ['coordinador', 'coordinadorNombre', 'NombreCoordinador'], '')),
+      coordinadorNombre: limpiarTexto(pick(source, ['coordinador', 'coordinadorNombre', 'Nombre Coordinador'], '')),
       estadoRevision: estado,
       tituloAprobadoNumero: Number(pick(source, ['tituloAprobadoNumero', 'tituloDefinitivoNumero'], 0)) || 0,
       tituloAprobadoTexto: limpiarTexto(pick(source, ['tituloAprobadoTexto', 'tituloDefinitivo', 'tituloOficial'], '')),
-      observacionRevision: limpiarTexto(pick(source, ['observacionRevision', 'observacion', 'Observacion'], '')),
+      observacionRevision: limpiarTexto(pick(source, ['observacionRevision', 'observacion'], '')),
       titulos: titulos,
       raw: source
     };
@@ -109,10 +123,13 @@
         numero: numero,
         tituloOriginal: pick(source, [
           'titulo' + numero,
+          'titulo ' + numero,
           'titulo_' + numero,
-          'Titulo' + numero,
           'Título ' + numero,
-          'tituloFinal' + numero
+          'Titulo ' + numero,
+          'TITULO ' + numero,
+          'tituloFinal' + numero,
+          'tituloFinal ' + numero
         ], '')
       });
     }).filter(function (item) {
@@ -143,14 +160,12 @@
         return limpiarTexto(item);
       }).filter(Boolean);
     }
-
     return String(value || '').split(/[,;|]/).map(limpiarTexto).filter(Boolean);
   }
 
   function perteneceCarrera(estudiante, coordinador) {
     var carreraEstudiante = normalizarComparacion(estudiante && estudiante.carrera);
     var carreras = coordinador && Array.isArray(coordinador.carreras) ? coordinador.carreras : [];
-
     if (!carreraEstudiante) return false;
 
     return carreras.some(function (carrera) {
