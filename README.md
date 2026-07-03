@@ -46,9 +46,24 @@ js/utils/
 assets/
 ```
 
+## Configuración pendiente
+
+La estructura de la app está lista. Para leer y guardar datos reales se debe completar:
+
+```text
+js/config/app.config.js
+```
+
+La guía está en:
+
+```text
+CONFIGURACION_DATOS.md
+```
+
 ## Estado de construcción
 
 - Bloque 1: limpieza completada.
 - Bloque 2: estructura visual base.
 - Bloque 3: configuración, estado, utilidades y servicios de datos.
 - Bloque 4: repositorio, UI y controladores.
+- Bloque 5: integración final y carga de scripts.
