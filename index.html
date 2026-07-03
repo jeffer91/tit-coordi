@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!--
+  Archivo: index.html
+  Ruta: /index.html
+  Funciones principales:
+  - Renderizar la pantalla única de revisión para coordinadores.
+  - Mostrar selector de coordinador, tarjetas de resumen y menú de estados.
+  - Mostrar tabla simple de estudiantes asignados al coordinador.
+  - Preparar el modal Ver más para revisar tres títulos, editar con lapicito y decidir.
+  - Mantener la app sin módulos de estudiante ni administrador.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tit Coordi | Revisión de títulos</title>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/modal.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header__content">
+      <div>
+        <span class="app-badge">Tit Coordi</span>
+        <h1>Revisión de títulos académicos</h1>
+        <p>Panel exclusivo para coordinadores. Revisa pendientes, aprueba títulos, devuelve registros o aprueba con correcciones.</p>
+      </div>
+
+      <div class="source-pill" id="fuenteDatosTexto">Fuente: pendiente</div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="card control-card" aria-labelledby="tituloAcceso">
+      <div class="section-heading">
+        <p class="section-kicker">Acceso</p>
+        <h2 id="tituloAcceso">Seleccionar coordinador</h2>
+        <p>Elige tu nombre para cargar únicamente los estudiantes pendientes asignados a tus carreras.</p>
+      </div>
+
+      <div class="control-grid">
+        <div class="field">
+          <label for="coordinadorSelect">Coordinador</label>
+          <select id="coordinadorSelect" name="coordinador">
+            <option value="">Cargando coordinadores...</option>
+          </select>
+        </div>
+
+        <div class="control-actions">
+          <button class="btn btn--primary" type="button" id="btnCargarCoordinador">Cargar revisión</button>
+          <button class="btn btn--ghost" type="button" id="btnActualizarDatos">Actualizar datos</button>
+        </div>
+      </div>
+
+      <div class="status-message" id="mensajeGeneral" role="status" aria-live="polite">Selecciona un coordinador para iniciar.</div>
+    </section>
+
+    <section class="summary-grid" aria-label="Resumen de revisión">
+      <article class="summary-card summary-card--pending">
+        <span>Pendientes</span>
+        <strong id="contadorPendientes">0</strong>
+      </article>
+
+      <article class="summary-card summary-card--approved">
+        <span>Aprobados</span>
+        <strong id="contadorAprobados">0</strong>
+      </article>
+
+      <article class="summary-card summary-card--returned">
+        <span>Devueltos</span>
+        <strong id="contadorDevueltos">0</strong>
+      </article>
+
+      <article class="summary-card summary-card--total">
+        <span>Total estudiantes</span>
+        <strong id="contadorTotal">0</strong>
+      </article>
+    </section>
+
+    <section class="card review-card" aria-labelledby="tituloListado">
+      <div class="section-heading section-heading--row">
+        <div>
+          <p class="section-kicker">Revisión</p>
+          <h2 id="tituloListado">Estudiantes asignados</h2>
+          <p id="descripcionListado">Los pendientes aparecerán aquí cuando selecciones un coordinador.</p>
+        </div>
+      </div>
+
+      <nav class="tabs" aria-label="Menú de estados">
+        <button class="tab is-active" type="button" data-menu="PENDIENTE" id="tabPendientes">Pendientes</button>
+        <button class="tab" type="button" data-menu="APROBADOS" id="tabAprobados">Aprobados</button>
+        <button class="tab" type="button" data-menu="DEVUELTO" id="tabDevueltos">Devueltos</button>
+      </nav>
+
+      <div class="table-wrap">
+        <table class="review-table" aria-label="Tabla de estudiantes para revisión">
+          <thead>
+            <tr>
+              <th>Cédula</th>
+              <th>Estudiante</th>
+              <th>Carrera</th>
+              <th class="text-right">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tablaEstudiantesBody">
+            <tr>
+              <td colspan="4" class="empty-cell">Selecciona un coordinador para cargar datos.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <section class="modal is-hidden" id="modalRevision" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close="true"></div>
+
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <header class="modal__header">
+        <div>
+          <p class="section-kicker">Ver más</p>
+          <h2 id="modalTitulo">Revisión de títulos</h2>
+          <p id="modalCarreraTexto">Carrera: —</p>
+        </div>
+
+        <button class="modal__close" type="button" id="btnCerrarModal" aria-label="Cerrar modal">×</button>
+      </header>
+
+      <div class="modal__body">
+        <div class="proposal-list" id="modalTitulosLista">
+          <article class="proposal-card">
+            <div class="proposal-card__header">
+              <strong>Título 1</strong>
+              <span class="badge badge--pending">Pendiente</span>
+            </div>
+            <p class="proposal-card__text">Los títulos aparecerán cuando se carguen los datos reales.</p>
+          </article>
+        </div>
+
+        <div class="field">
+          <label for="observacionRevision">Observación global</label>
+          <textarea id="observacionRevision" rows="4" placeholder="Obligatoria si devuelves o apruebas con correcciones."></textarea>
+        </div>
+      </div>
+
+      <footer class="modal__footer">
+        <button class="btn btn--ghost" type="button" id="btnCancelarRevision">Cancelar</button>
+        <button class="btn btn--danger" type="button" id="btnDevolverTitulos">Devolver</button>
+        <button class="btn btn--secondary" type="button" id="btnAprobarCorrecciones">Aprobar con correcciones</button>
+        <button class="btn btn--success" type="button" id="btnAprobarTitulo">Aprobar</button>
+      </footer>
+    </div>
+  </section>
+</body>
+</html>
