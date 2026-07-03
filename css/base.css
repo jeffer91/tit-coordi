@@ -1,0 +1,163 @@
+/*
+  Archivo: base.css
+  Ruta: /css/base.css
+  Funciones principales:
+  - Definir variables visuales globales.
+  - Normalizar tipografía, fondo, botones e inputs base.
+  - Mantener una base limpia para la app Tit Coordi.
+*/
+
+:root {
+  --color-bg: #f4f7fb;
+  --color-card: #ffffff;
+  --color-text: #172033;
+  --color-muted: #667085;
+  --color-line: #d9e2ef;
+  --color-primary: #1455d9;
+  --color-primary-dark: #0d3ea6;
+  --color-primary-soft: #eaf1ff;
+  --color-success: #147a3f;
+  --color-success-soft: #ecfdf3;
+  --color-warning: #9a6700;
+  --color-warning-soft: #fffaeb;
+  --color-danger: #b42318;
+  --color-danger-soft: #fef3f2;
+  --color-info-soft: #eef6ff;
+  --shadow-card: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --max-width: 1180px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+p {
+  color: var(--color-muted);
+}
+
+label {
+  font-weight: 800;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  padding: 12px 13px;
+  color: var(--color-text);
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(20, 85, 217, 0.14);
+}
+
+.btn {
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 900;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn--primary {
+  color: #ffffff;
+  background: var(--color-primary);
+  box-shadow: 0 10px 22px rgba(20, 85, 217, 0.22);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btn--secondary {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.btn--ghost {
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-line);
+}
+
+.btn--success {
+  color: #ffffff;
+  background: var(--color-success);
+}
+
+.btn--danger {
+  color: #ffffff;
+  background: var(--color-danger);
+}
+
+.text-right {
+  text-align: right;
+}
+
+.is-hidden {
+  display: none !important;
+}
