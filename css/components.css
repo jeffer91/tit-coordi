@@ -1,0 +1,190 @@
+/*
+  Archivo: components.css
+  Ruta: /css/components.css
+  Funciones principales:
+  - Diseñar tarjetas de resumen, menú de estados, tabla y etiquetas.
+  - Centralizar los componentes visuales reutilizables.
+  - Mantener clara la diferencia entre pendiente, aprobado, corrección y devuelto.
+*/
+
+.app-badge,
+.source-pill,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.app-badge {
+  padding: 8px 12px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.source-pill {
+  padding: 10px 14px;
+  color: var(--color-primary);
+  background: #ffffff;
+  white-space: nowrap;
+}
+
+.status-message {
+  min-height: 24px;
+  margin-top: 14px;
+  font-weight: 800;
+}
+
+.status-message.is-info {
+  color: var(--color-primary);
+}
+
+.status-message.is-success {
+  color: var(--color-success);
+}
+
+.status-message.is-warning {
+  color: var(--color-warning);
+}
+
+.status-message.is-error {
+  color: var(--color-danger);
+}
+
+.summary-card {
+  padding: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+}
+
+.summary-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.summary-card strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.summary-card--pending {
+  border-color: #b9dbff;
+  background: var(--color-info-soft);
+}
+
+.summary-card--approved {
+  border-color: #b7ebc6;
+  background: var(--color-success-soft);
+}
+
+.summary-card--returned {
+  border-color: #fecdca;
+  background: var(--color-danger-soft);
+}
+
+.summary-card--total {
+  border-color: #d0d5dd;
+  background: #fbfdff;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px;
+  margin: 0 0 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: #f8fafc;
+}
+
+.tab {
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 11px 16px;
+  color: var(--color-muted);
+  background: transparent;
+  font-weight: 900;
+}
+
+.tab.is-active {
+  color: #ffffff;
+  background: var(--color-primary);
+  box-shadow: 0 10px 20px rgba(20, 85, 217, 0.2);
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+.review-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.review-table th,
+.review-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.review-table th {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #f8fafc;
+}
+
+.review-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.review-table tbody tr:hover {
+  background: #fbfdff;
+}
+
+.empty-cell {
+  padding: 28px 16px !important;
+  color: var(--color-muted);
+  text-align: center !important;
+}
+
+.badge {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.badge--pending {
+  color: var(--color-primary);
+  background: var(--color-info-soft);
+}
+
+.badge--approved {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.badge--corrected {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.badge--returned {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
