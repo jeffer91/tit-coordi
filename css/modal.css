@@ -1,0 +1,140 @@
+/*
+  Archivo: modal.css
+  Ruta: /css/modal.css
+  Funciones principales:
+  - Diseñar el modal Ver más.
+  - Mostrar los títulos enviados y controles de revisión.
+  - Preparar estilos para edición con lapicito y regreso al texto original.
+*/
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.modal__panel {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: min(88vh, 900px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+}
+
+.modal__header,
+.modal__footer {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modal__header h2 {
+  margin-bottom: 8px;
+}
+
+.modal__header p:last-child {
+  margin-bottom: 0;
+}
+
+.modal__close {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  color: var(--color-text);
+  background: #ffffff;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.modal__body {
+  padding: 22px;
+  overflow-y: auto;
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-line);
+  border-bottom: 0;
+  background: #fbfdff;
+}
+
+.proposal-list {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.proposal-card {
+  padding: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+}
+
+.proposal-card.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(20, 85, 217, 0.1);
+}
+
+.proposal-card.is-edited {
+  border-color: #fedf89;
+  background: #fffdf5;
+}
+
+.proposal-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.proposal-card__text {
+  margin: 0;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.proposal-card__editor {
+  margin-top: 12px;
+}
+
+.proposal-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.editor-note {
+  margin: 8px 0 0;
+  color: var(--color-warning);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
